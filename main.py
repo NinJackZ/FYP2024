@@ -1,51 +1,42 @@
-import pygame, pyautogui, button
+import pygame, sys, pyautogui
+from menu import Menu
+from button import Button
 
+# Initialize Pygame
 pygame.init()
 
+# Constants
 WIDTH, HEIGHT = pyautogui.size()
-SCREEN_WIDTH = WIDTH
-SCREEN_HEIGHT  = HEIGHT
+WHITE = (255, 255, 255)
+GREY = (105, 105, 105)
 
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("Main Menu")
+# Create the screen
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Pygame Menu")
 
-game_paused = False
-font = pygame.font.SysFont("arialblack", 40)
-TEXT_COL = (255,255,255)
+# Create a menu
+menu = Menu(screen)
 
-play_img = pygame.image.load("assets/play.png").convert_alpha()
-quit_img = pygame.image.load("assets/quit.png").convert_alpha()
-bg = pygame.image.load("assets/bg.png").convert_alpha()
-play_button = button.Button(SCREEN_WIDTH/SCREEN_HEIGHT + 200, SCREEN_HEIGHT/4 , play_img, 2)
-quit_button = button.Button(SCREEN_WIDTH - 200 , 0, quit_img, 1)
- 
+# Create buttons and add them to the menu
+play_button = Button(300, 250, 200, 50, "Play", GREY, (0, 200, 0))
+quit_button = Button(300, 350, 200, 50, "Quit", GREY, (0, 200, 0), sys.exit)
 
-def draw_text(text, font, text_col, x, y):
-     img = font.render(text, True, text_col)
-     screen.blit(img, (x,y))
+menu.add_button(play_button)
+menu.add_button(quit_button)
 
-run = True
-while run:
-    
-    screen.fill((129,133,137))
-
-    if game_paused == True:
-        if play_button.draw(screen):
-                game_paused = False
-        if quit_button.draw(screen):
-                game_paused = False
-                run = False
-    else:
-         draw_text("Space", font, TEXT_COL, 160, 250)
-
+# Main game loop
+running = True
+while running:
     for event in pygame.event.get():
-        if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                     game_paused = True
-                if event.type == pygame.QUIT:
-                        run = False
+        if event.type == pygame.QUIT:
+            running = False
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                pos = pygame.mouse.get_pos()
+                menu.check_button_clicks(pos)
 
-    pygame.display.update()
-
+    screen.fill(WHITE)
+    menu.draw()
+    pygame.display.flip()
 
 pygame.quit()
