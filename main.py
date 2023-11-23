@@ -1,13 +1,14 @@
-import pygame, sys, pyautogui
+import pygame, sys
 from menu import Menu
 from button import Button
 from game import Game
+from images import Images
 
 # Initialize Pygame
 pygame.init()
 
 # Constants
-WIDTH, HEIGHT = pyautogui.size()
+WIDTH, HEIGHT = 1280, 720
 WHITE = (255, 255, 255)
 GREY = (105, 105, 105)
 
@@ -18,10 +19,13 @@ pygame.display.set_caption("Pygame Menu")
 # Create menu
 menu = Menu(screen)
 
-# Create buttons and add them to the menu
-play_button = Button(300, 250, 200, 50, "Play", GREY, (0, 200, 0))
-quit_button = Button(300, 350, 200, 50, "Quit", GREY, (0, 200, 0), sys.exit)
+# Define object characteristics
+play_button = Button(550, 300, 200, 50, "Play", GREY, (0, 200, 0))
+quit_button = Button(550, 400, 200, 50, "Quit", GREY, (0, 200, 0), sys.exit)
+title_path = "assets/title.png"
 
+# Display objects on screen
+title
 menu.add_button(play_button)
 menu.add_button(quit_button)
 
