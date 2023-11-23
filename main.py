@@ -11,31 +11,42 @@ pygame.init()
 WIDTH, HEIGHT = 1280, 720
 WHITE = (255, 255, 255)
 GREY = (105, 105, 105)
+icon = pygame.image.load("assets/icon.jpg")
 
 # Create screen
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Pygame Menu")
+pygame.display.set_icon(icon)
+pygame.display.set_caption("QuickMaze")
+bg = pygame.image.load("assets/bg.jpg")
+bg = pygame.transform.scale(bg,(WIDTH,HEIGHT))
 
 # Create menu
 menu = Menu(screen)
 
 # Define object characteristics
-play_button = Button(550, 300, 200, 50, "Play", GREY, (0, 200, 0))
-quit_button = Button(550, 400, 200, 50, "Quit", GREY, (0, 200, 0), sys.exit)
-title_path = "assets/title.png"
+play_button = Button(540, 300, 200, 50, "Play", GREY, (0, 200, 0))
+quit_button = Button(540, 400, 200, 50, "Quit", GREY, (0, 200, 0), sys.exit)
+title_image = Images(430, 100, "assets/title.png", action=None)
 
 # Display objects on screen
-title
 menu.add_button(play_button)
 menu.add_button(quit_button)
-
+menu.add_image(title_image)
 game = Game(screen, 10, 10)
 
 # Main game loop
 running = True
 in_game = False 
+bg_i = 0
 
 while running:
+    screen.fill((0,0,0))
+    screen.blit(bg,(bg_i,0))
+    screen.blit(bg,(WIDTH+bg_i,0))
+    if (bg_i==-WIDTH):
+        screen.blit(bg,(WIDTH+bg_i,0))
+        bg_i=0
+    bg_i-=1
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -50,7 +61,6 @@ while running:
                 if play_button.rect.collidepoint(pos):
                     in_game = True
 
-    screen.fill(WHITE)
 
     if in_game:
         # Handle player movement based on keys
@@ -66,6 +76,6 @@ while running:
     else:
         menu.draw()
 
-    pygame.display.flip()
+    pygame.display.update()
 
 pygame.quit()
