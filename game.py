@@ -1,73 +1,97 @@
 import pygame, random
+from random import choice
 
 # Constants
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-GREEN = (0, 255, 0)
+RES = WIDTH, HEIGHT = 1080, 520
+TILE = 50
+cols, rows = WIDTH // TILE, HEIGHT // TILE
 
 class Game:
-    def __init__(self, screen, maze_width, maze_height):
-        self.screen = screen
-        self.maze_width = maze_width
-        self.maze_height = maze_height
-        self.cell_size = screen.get_width() // maze_width, screen.get_height() // maze_height
-        self.maze = [[0 for _ in range(maze_width)] for _ in range(maze_height)]
-        self.player_x, self.player_y = 1, 1
-        self.generate_maze()
+    def __init__(self, x, y):
+        self.x, self.y = x, y
+        self.walls = {'top': True, 'right': True, 'bottom': True, 'left': True}
+        self.visited = False
+        self.thickness = 4
 
-    def generate_maze(self):
-        stack = [(0, 0)]
-        visited = set()
+    def get_rects(self):
+        rects = []
+        x, y = self.x * TILE, self.y * TILE
+        wall_params = [
+            ('top', (x, y), (TILE, self.thickness)),
+            ('bottom', (x, y + TILE), (TILE, self.thickness)),
+            ('left', (x, y), (self.thickness, TILE)),
+            ('right', (x + TILE, y), (self.thickness, TILE))
+        ]
 
-        while stack:
-            x, y = stack[-1]
-            visited.add((x, y))
-            self.maze[y][x] |= 16  # Mark the current cell as visited
+        for wall, pos, size in wall_params:
+            if self.walls[wall]:
+                rects.append(pygame.Rect(pos, size))
 
-            neighbors = [(x + 2, y), (x - 2, y), (x, y + 2), (x, y - 2)]
-            random.shuffle(neighbors)
-            # Applying Depth-first search algorithm
-            for nx, ny in neighbors:
-                if (nx, ny) not in visited and 0 <= nx < self.maze_width and 0 <= ny < self.maze_height:
-                    stack.append((nx, ny))
-                    dx, dy = nx - x, ny - y
-                    self.maze[y + dy // 2][x + dx // 2] |= 16
-                    self.maze[ny][nx] |= 16
-                    break
-                else:
-                    visited.add((nx, ny))
-            else:
-                stack.pop()
+        return rects
 
-    def move_player(self, dx, dy):
-        new_x = self.player_x + dx
-        new_y = self.player_y + dy
-        if (
-            0 <= new_x < self.maze_width
-            and 0 <= new_y < self.maze_height
-            and not (self.maze[self.player_y][self.player_x] & (1 << [(1, 0), (-1, 0), (0, 1), (0, -1)].index((dx, dy))))
-        ):
-            self.player_x = new_x
-            self.player_y = new_y
+    def is_valid_index(self, x, y):
+        return 0 <= x < cols and 0 <= y < rows
 
-    def draw(self):
-        self.screen.fill(WHITE)
+    def check_cell(self, x, y):
+        find_index = lambda x, y: x + y * cols
+        return self.grid_cells[find_index(x, y)] if self.is_valid_index(x, y) else False
 
-        # Draw maze
-        for y in range(self.maze_height):
-            for x in range(self.maze_width):
-                if not (self.maze[y][x] & 1):  # Right wall
-                    pygame.draw.line(self.screen, BLACK, (x * self.cell_size[0], y * self.cell_size[1]),
-                                     (x * self.cell_size[0], (y + 1) * self.cell_size[1]), 2)
-                if not (self.maze[y][x] & 2):  # Left wall
-                    pygame.draw.line(self.screen, BLACK, (x * self.cell_size[0], y * self.cell_size[1]),
-                                     ((x + 1) * self.cell_size[0], y * self.cell_size[1]), 2)
-                if not (self.maze[y][x] & 4):  # Down wall
-                    pygame.draw.line(self.screen, BLACK, (x * self.cell_size[0], (y + 1) * self.cell_size[1]),
-                                     ((x + 1) * self.cell_size[0], (y + 1) * self.cell_size[1]), 2)
-                if not (self.maze[y][x] & 8):  # Up wall
-                    pygame.draw.line(self.screen, BLACK, (x * self.cell_size[0], y * self.cell_size[1]),
-                                     ((x + 1) * self.cell_size[0], y * self.cell_size[1]), 2)
+    def check_next(self, grid_cells):
+        self.grid_cells = grid_cells
+        neighbors = [
+            self.check_cell(self.x, self.y - 1),
+            self.check_cell(self.x + 1, self.y),
+            self.check_cell(self.x, self.y + 1),
+            self.check_cell(self.x - 1, self.y)
+        ]
 
-        pygame.draw.circle(self.screen, (255, 0, 0), (self.player_x * self.cell_size[0], self.player_y * self.cell_size[1]), 10)
-        pygame.display.flip()
+        valid_neighbors = [neighbor for neighbor in neighbors if neighbor and not neighbor.visited]
+        
+        return choice(valid_neighbors) if valid_neighbors else False
+    
+    def draw(self, sc):
+        x, y = self.x * TILE + 10, self.y * TILE + 10
+        wall_draw_params = [
+            ('top', (x, y), (x + TILE, y)),
+            ('bottom', (x + TILE, y + TILE), (x, y + TILE)),
+            ('left', (x, y + TILE), (x, y)),
+            ('right', (x + TILE, y), (x + TILE, y + TILE))
+        ]
+
+        for wall, start, end in wall_draw_params:
+            if self.walls[wall]:
+                pygame.draw.line(sc, pygame.Color('white'), start, end, self.thickness)
+
+def generate_maze():
+    grid_cells = [Game(col, row) for row in range(rows) for col in range(cols)]
+    current_cell = grid_cells[0]
+    stack = []
+
+    while True:
+        current_cell.visited = True
+        next_cell = current_cell.check_next(grid_cells)
+
+        if next_cell:
+            next_cell.visited = True
+            stack.append(current_cell)
+            remove_walls(current_cell, next_cell)
+            current_cell = next_cell
+        elif stack:
+            current_cell = stack.pop()
+        else:
+            break
+
+    return grid_cells
+
+def remove_walls(current, next):
+    dx, dy = current.x - next.x, current.y - next.y
+
+    if dx == 1:
+        current.walls['left'] = next.walls['right'] = False
+    elif dx == -1:
+        current.walls['right'] = next.walls['left'] = False
+
+    if dy == 1:
+        current.walls['top'] = next.walls['bottom'] = False
+    elif dy == -1:
+        current.walls['bottom'] = next.walls['top'] = False
