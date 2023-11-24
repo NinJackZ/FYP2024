@@ -19,6 +19,8 @@ FPS = 60
 game_surface = pygame.Surface(RES)
 surface = pygame.display.set_mode((WIDTH + 300, HEIGHT))
 clock = pygame.time.Clock()
+text_font = pygame.font.SysFont('Calibri', 50)
+font = pygame.font.SysFont('Calibri', 50)
 
 # Assets
 icon = pygame.image.load("assets/icon.jpg")
@@ -44,10 +46,10 @@ walls_collide_list = sum([cell.get_rects() for cell in maze], [])
 pygame.time.set_timer(pygame.USEREVENT, 1000)
 time = 60
 
-
 # Define object characteristics
 play_button = Button(540, 300, 200, 50, "PLAY", (105, 105, 105), (0, 200, 0))
-quit_button = Button(540, 400, 200, 50, "QUIT", (105, 105, 105), (0, 200, 0), sys.exit)
+quit_button = Button(540, 500, 200, 50, "QUIT", (105, 105, 105), (0, 200, 0), sys.exit)
+solve_button = Button(540, 400, 200, 50, "SOLVE", (105, 105, 105), (0, 200, 0))
 ingame_quit_button = Button(540, 400, 200, 50, "QUIT", (105, 105, 105), (0, 200, 0), sys.exit)
 title_image = Images(430, 100, "assets/title.png", action=None)
 
@@ -59,12 +61,11 @@ key = {'a': pygame.K_a, 'd': pygame.K_d, 'w': pygame.K_w, 's': pygame.K_s}
 player_sprite = pygame.transform.scale(player_sprite, (GRID - 2 * maze[0].thickness, GRID - 2 * maze[0].thickness))
 player_rect = player_sprite.get_rect()
 player_rect.center = GRID // 2, GRID // 2
-
 direction = (0, 0)
-
 
 # Display objects on screen
 menu.add_button(play_button)
+menu.add_button(solve_button)
 menu.add_button(quit_button)
 menu.add_image(title_image)
 
@@ -125,6 +126,11 @@ while running:
         direction = controls.get(active_keys[0], (0, 0)) if active_keys else (0, 0)
         if not is_collide(*direction):
             player_rect.move_ip(direction)
+
+        # Stats
+        surface.blit(text_font.render('TIME', True, pygame.Color('white'), True), (1085, 30))
+        surface.blit(font.render(f'{time}', True, pygame.Color('white')), (1110, 105))
+        surface.blit(text_font.render('STAGE', True, pygame.Color('white'), True), (1075, 300))
 
         pygame.display.flip()
         clock.tick(FPS)
