@@ -3,10 +3,10 @@ from random import choice
 
 # Constants
 RES = WIDTH, HEIGHT = 1080, 520
-TILE = 50
-cols, rows = WIDTH // TILE, HEIGHT // TILE
+GRID = 100
+cols, rows = WIDTH // GRID, HEIGHT // GRID
 
-class Game:
+class Generate_Maze:
     def __init__(self, x, y):
         self.x, self.y = x, y
         self.walls = {'top': True, 'right': True, 'bottom': True, 'left': True}
@@ -15,12 +15,12 @@ class Game:
 
     def get_rects(self):
         rects = []
-        x, y = self.x * TILE, self.y * TILE
+        x, y = self.x * GRID, self.y * GRID
         wall_params = [
-            ('top', (x, y), (TILE, self.thickness)),
-            ('bottom', (x, y + TILE), (TILE, self.thickness)),
-            ('left', (x, y), (self.thickness, TILE)),
-            ('right', (x + TILE, y), (self.thickness, TILE))
+            ('top', (x, y), (GRID, self.thickness)),
+            ('bottom', (x, y + GRID), (GRID, self.thickness)),
+            ('left', (x, y), (self.thickness, GRID)),
+            ('right', (x + GRID, y), (self.thickness, GRID))
         ]
 
         for wall, pos, size in wall_params:
@@ -50,20 +50,20 @@ class Game:
         return choice(valid_neighbors) if valid_neighbors else False
     
     def draw(self, sc):
-        x, y = self.x * TILE + 10, self.y * TILE + 10
+        x, y = self.x * GRID, self.y * GRID
         wall_draw_params = [
-            ('top', (x, y), (x + TILE, y)),
-            ('bottom', (x + TILE, y + TILE), (x, y + TILE)),
-            ('left', (x, y + TILE), (x, y)),
-            ('right', (x + TILE, y), (x + TILE, y + TILE))
+            ('top', (x, y), (x + GRID, y)),
+            ('bottom', (x + GRID, y + GRID), (x, y + GRID)),
+            ('left', (x, y + GRID), (x, y)),
+            ('right', (x + GRID, y), (x + GRID, y + GRID))
         ]
 
         for wall, start, end in wall_draw_params:
             if self.walls[wall]:
                 pygame.draw.line(sc, pygame.Color('white'), start, end, self.thickness)
 
-def generate_maze():
-    grid_cells = [Game(col, row) for row in range(rows) for col in range(cols)]
+def generate():
+    grid_cells = [Generate_Maze(col, row) for row in range(rows) for col in range(cols)]
     current_cell = grid_cells[0]
     stack = []
 
@@ -74,7 +74,7 @@ def generate_maze():
         if next_cell:
             next_cell.visited = True
             stack.append(current_cell)
-            remove_walls(current_cell, next_cell)
+            remove(current_cell, next_cell)
             current_cell = next_cell
         elif stack:
             current_cell = stack.pop()
@@ -83,7 +83,7 @@ def generate_maze():
 
     return grid_cells
 
-def remove_walls(current, next):
+def remove(current, next):
     dx, dy = current.x - next.x, current.y - next.y
 
     if dx == 1:
