@@ -3,7 +3,7 @@ from random import choice
 
 # Constants
 RES = WIDTH, HEIGHT = 1080, 520
-GRID = 100
+GRID = 100   
 cols, rows = WIDTH // GRID, HEIGHT // GRID
 
 class Generate_Maze:

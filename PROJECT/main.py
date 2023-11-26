@@ -1,14 +1,54 @@
-import pygame, sys
+import pygame, sys, random
+from random import *
 from menu import Menu
 from button import Button
 from maze import *
+from goal import Goal
 from images import Images
 
-def is_collide(x, y):
+def hit_goal():
+    global goal_list
+    for goal in goal_list:
+        if player_rect.collidepoint(goal.rect.center):
+            goal.set_pos()
+            regenerate_maze()
+            return True
+    return False
+
+def regenerate_maze():
+    global maze, walls_collide_list
+    maze = generate()
+    walls_collide_list = [rect for cell in maze for rect in cell.get_rects()]
+
+def collide(x, y):
     tmp_rect = player_rect.move(x, y)
-    if tmp_rect.collidelist(walls_collide_list) == -1:
-        return False
-    return True
+    return tmp_rect.collidelist(walls_collide_list) != -1
+
+def set_record(record, score):
+    rec = max(int(record), score)
+    with open('record', 'w') as file:
+        file.write(str(rec))
+
+def get_record():
+    try:
+        with open('record') as f:
+            return f.readline()
+    except FileNotFoundError:
+        with open('record', 'w') as f:
+            f.write('0')
+            return 0
+
+def game_over():
+    global time, score, record
+    if time < 0:
+        pygame.time.wait(700)
+        player_rect.center = GRID // 2, GRID // 2
+        [goal.set_pos() for goal in goal_list]
+        set_record(record, score)
+        record = get_record()
+        in_game = False
+
+
 
 # Initialize Pygame
 pygame.init()
@@ -16,17 +56,20 @@ pygame.init()
 # Constants
 WIDTH, HEIGHT = 1280, 720
 FPS = 60
+GRID = 100
 game_surface = pygame.Surface(RES)
 surface = pygame.display.set_mode((WIDTH + 300, HEIGHT))
 clock = pygame.time.Clock()
 text_font = pygame.font.SysFont('Calibri', 50)
 font = pygame.font.SysFont('Calibri', 50)
+score= 1
+goal_list = [Goal(GRID, cols, rows) for i in range(1)]
 
 # Assets
 icon = pygame.image.load("assets/icon.jpg")
 bg = pygame.image.load("assets/bg.jpg")
 game_bg = pygame.image.load("assets/game_bg.jpg")
-player_sprite = pygame.image.load('assets/quit.png').convert_alpha()
+player_sprite = pygame.image.load('assets/player.png').convert_alpha()
 
 # Create screen
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -50,7 +93,6 @@ time = 60
 play_button = Button(540, 300, 200, 50, "PLAY", (105, 105, 105), (0, 200, 0))
 quit_button = Button(540, 500, 200, 50, "QUIT", (105, 105, 105), (0, 200, 0), sys.exit)
 solve_button = Button(540, 400, 200, 50, "SOLVE", (105, 105, 105), (0, 200, 0))
-ingame_quit_button = Button(540, 400, 200, 50, "QUIT", (105, 105, 105), (0, 200, 0), sys.exit)
 title_image = Images(430, 100, "assets/title.png", action=None)
 
 # Player
@@ -111,9 +153,16 @@ while running:
                 exit()
             if event.type == pygame.USEREVENT:
                 time -= 1
+        # Goal
+        if hit_goal():
+            score += 1
+        game_over()
 
         # Draw player
         game_surface.blit(player_sprite, player_rect)
+
+        # Draw Goal
+        [goal.draw(game_surface) for goal in goal_list]
 
         # Draw maze
         for cell in maze:
@@ -124,13 +173,19 @@ while running:
         pressed_keys = pygame.key.get_pressed()
         active_keys = [key for key, key_value in key.items() if pressed_keys[key_value]]
         direction = controls.get(active_keys[0], (0, 0)) if active_keys else (0, 0)
-        if not is_collide(*direction):
+        if not collide(*direction):
             player_rect.move_ip(direction)
 
         # Stats
+        time_color = pygame.Color('white')
+        repos = 1110
+        if time < 10:
+            time_color = pygame.Color('red')
+            repos += 10
         surface.blit(text_font.render('TIME', True, pygame.Color('white'), True), (1085, 30))
-        surface.blit(font.render(f'{time}', True, pygame.Color('white')), (1110, 105))
+        surface.blit(font.render(f'{time}', True, time_color), (repos, 105))
         surface.blit(text_font.render('STAGE', True, pygame.Color('white'), True), (1075, 300))
+        surface.blit(font.render(f'{score}', True, pygame.Color('white')), (1120, 360))
 
         pygame.display.flip()
         clock.tick(FPS)
