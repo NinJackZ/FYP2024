@@ -25,5 +25,6 @@ class Menu:
                 button.draw(self.screen, (105, 255, 255))
             else:
                 button.draw(self.screen)
+
         for image in self.images:
             image.draw(self.screen)

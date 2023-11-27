@@ -7,63 +7,6 @@ from goal import Goal
 from images import Images
 from config import grid, rows, cols, RES
 
-def hit_goal():
-    global goal_list
-    for goal in goal_list:
-        if player_rect.collidepoint(goal.rect.center):
-            goal.set_pos()
-            regenerate_maze()
-            return True
-    return False
-
-def regenerate_maze():
-    global maze, walls_collide_list
-    maze = generate()
-    walls_collide_list = [rect for cell in maze for rect in cell.get_rects()]
-    
-
-def collide(x, y):
-    tmp_rect = player_rect.move(x, y)
-    return tmp_rect.collidelist(walls_collide_list) != -1
-
-def set_record(record, score):
-    rec = max(int(record), score)
-    with open('record', 'w') as file:
-        file.write(str(rec))
-
-def get_record():
-    try:
-        with open('record') as f:
-            return f.readline()
-    except FileNotFoundError:
-        with open('record', 'w') as f:
-            f.write('0')
-            return 0
-
-def game_over():
-    global time, score, record
-    if time < 0:
-        pygame.time.wait(700)
-        player_rect.center = grid // 2, grid // 2
-        [goal.set_pos() for goal in goal_list]
-        set_record(record, score)
-        record = get_record()
-        in_game = False
-
-def reset_player_position():
-    global player_rect
-    valid_position = False
-    while not valid_position:
-        player_rect.center = (
-            randrange(1, cols - 1) * grid + grid // 2,
-            randrange(1, rows - 1) * grid + grid // 2
-        )
-        valid_position = not player_collides_with_walls()
-
-def player_collides_with_walls():
-    return player_rect.collidelist(walls_collide_list) != -1
-
-
 # Initialize Pygame
 pygame.init()
 
@@ -77,6 +20,9 @@ text_font = pygame.font.SysFont('Calibri', 50)
 font = pygame.font.SysFont('Calibri', 50)
 score = 0
 goal_list = [Goal(grid) for i in range(1)]
+DIFFICULTY_EASY = 1
+DIFFICULTY_MEDIUM = 2
+DIFFICULTY_HARD = 3
 
 # Assets
 icon = pygame.image.load("assets/icon.jpg")
@@ -112,7 +58,6 @@ title_image = Images(430, 100, "assets/title.png", action=None)
 speed = 5
 controls = {'a': (-speed, 0), 'd': (speed, 0), 'w': (0, -speed), 's': (0, speed)}
 key = {'a': pygame.K_a, 'd': pygame.K_d, 'w': pygame.K_w, 's': pygame.K_s}
-
 player_sprite = pygame.transform.scale(player_sprite, (grid - 5 * maze[0].thickness, grid - 5 * maze[0].thickness))
 player_rect = player_sprite.get_rect()
 player_rect.center = grid // 2, grid // 2
@@ -152,7 +97,7 @@ while running:
                 pos = pygame.mouse.get_pos()
                 menu.check_button_clicks(pos)
                 if play_button.rect.collidepoint(pos):
-                    in_game = True
+                    del play_button
 
 
     if in_game: 
@@ -166,6 +111,45 @@ while running:
                 exit()
             if event.type == pygame.USEREVENT:
                 time -= 1
+        
+        def hit_goal():
+            global goal_list
+            for goal in goal_list:
+                if player_rect.collidepoint(goal.rect.center):
+                    goal.set_pos()
+                    regenerate_maze()
+                    return True
+            return False
+
+        def regenerate_maze():
+            global maze, walls_collide_list
+            maze = generate()
+            walls_collide_list = [rect for cell in maze for rect in cell.get_rects()]
+            
+        def collide(x, y):
+            tmp_rect = player_rect.move(x, y)
+            return tmp_rect.collidelist(walls_collide_list) != -1
+
+        def game_over():
+            global time, score, record
+            if time < 0:
+                pygame.time.wait(700)
+                player_rect.center = grid // 2, grid // 2
+                [goal.set_pos() for goal in goal_list]
+                in_game = False
+
+        def reset_player_position():
+            global player_rect
+            valid_position = False
+            while not valid_position:
+                player_rect.center = (
+                    randrange(1, cols - 1) * grid + grid // 2,
+                    randrange(1, rows - 1) * grid + grid // 2
+                )
+                valid_position = not player_collides_with_walls()
+
+        def player_collides_with_walls():
+            return player_rect.collidelist(walls_collide_list) != -1
                 
         # Goal and check player collision
         if hit_goal():
@@ -193,14 +177,14 @@ while running:
 
         # Stats
         time_color = pygame.Color('white')
-        repos = 1110
+        repos = 1135
         if time < 10:
             time_color = pygame.Color('red')
             repos += 10
-        surface.blit(text_font.render('TIME', True, pygame.Color('white'), True), (1085, 30))
-        surface.blit(font.render(f'{time}', True, time_color), (repos, 105))
-        surface.blit(text_font.render('STAGE', True, pygame.Color('white'), True), (1075, 300))
-        surface.blit(font.render(f'{score}', True, pygame.Color('white')), (1120, 360))
+        surface.blit(text_font.render('TIME', True, pygame.Color('white'), True), (1110, 30))
+        surface.blit(font.render(f'{time}', True, time_color), (repos, 100))
+        surface.blit(text_font.render('STAGE', True, pygame.Color('white'), True), (1100, 300))
+        surface.blit(font.render(f'{score}', True, pygame.Color('white')), (1150, 370))
 
         pygame.display.flip()
         clock.tick(FPS)
