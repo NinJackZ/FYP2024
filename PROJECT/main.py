@@ -1,4 +1,4 @@
-import pygame, sys, random
+import pygame, sys
 from random import *
 from menu import Menu
 from button import Button
@@ -18,11 +18,6 @@ surface = pygame.display.set_mode((WIDTH + 300, HEIGHT))
 clock = pygame.time.Clock()
 text_font = pygame.font.SysFont('Calibri', 50)
 font = pygame.font.SysFont('Calibri', 50)
-score = 0
-goal_list = [Goal(grid) for i in range(1)]
-DIFFICULTY_EASY = 1
-DIFFICULTY_MEDIUM = 2
-DIFFICULTY_HARD = 3
 
 # Assets
 icon = pygame.image.load("assets/icon.jpg")
@@ -39,29 +34,16 @@ game_bg = pygame.transform.scale(game_bg,(WIDTH,HEIGHT))
 
 # Create menu/game
 menu = Menu(screen)
-maze = generate()
-
-# Collisions
-walls_collide_list = sum([cell.get_rects() for cell in maze], [])
 
 # Time
 pygame.time.set_timer(pygame.USEREVENT, 1000)
-time = 50
+time = 60
 
 # Define object characteristics
 play_button = Button(540, 300, 200, 50, "PLAY", (105, 105, 105), (0, 200, 0))
 quit_button = Button(540, 500, 200, 50, "QUIT", (105, 105, 105), (0, 200, 0), sys.exit)
 solve_button = Button(540, 400, 200, 50, "SOLVE", (105, 105, 105), (0, 200, 0))
 title_image = Images(430, 100, "assets/title.png", action=None)
-
-# Player
-speed = 5
-controls = {'a': (-speed, 0), 'd': (speed, 0), 'w': (0, -speed), 's': (0, speed)}
-key = {'a': pygame.K_a, 'd': pygame.K_d, 'w': pygame.K_w, 's': pygame.K_s}
-player_sprite = pygame.transform.scale(player_sprite, (grid - 5 * maze[0].thickness, grid - 5 * maze[0].thickness))
-player_rect = player_sprite.get_rect()
-player_rect.center = grid // 2, grid // 2
-direction = (0, 0)
 
 # Display objects on screen
 menu.add_button(play_button)
@@ -84,6 +66,7 @@ while running:
         key = pygame.key.get_pressed()
 
     if not in_game:
+        # Background animation
         screen.fill((0,0,0))
         screen.blit(bg,(bg_i,0))
         screen.blit(bg,(WIDTH+bg_i,0))
@@ -97,8 +80,21 @@ while running:
                 pos = pygame.mouse.get_pos()
                 menu.check_button_clicks(pos)
                 if play_button.rect.collidepoint(pos):
-                    del play_button
-
+                    # Game constants
+                    player_speed = 5
+                    stage = 1
+                    in_game = True
+                    # Maze generation
+                    maze = generate()
+                    walls_collide_list = sum([cell.get_rects() for cell in maze], [])
+                    goal_list = [Goal(grid) for i in range(1)]
+                    # Player controls
+                    controls = {'a': (-player_speed, 0), 'd': (player_speed, 0), 'w': (0, -player_speed), 's': (0, player_speed)}
+                    key = {'a': pygame.K_a, 'd': pygame.K_d, 'w': pygame.K_w, 's': pygame.K_s}
+                    player_sprite = pygame.transform.scale(player_sprite, (grid - 5 * maze[0].thickness, grid - 5 * maze[0].thickness))
+                    player_rect = player_sprite.get_rect()
+                    player_rect.center = grid // 2, grid // 2
+                    direction = (0, 0)
 
     if in_game: 
         FPS = 120
@@ -106,12 +102,6 @@ while running:
         surface.blit(game_surface, (0, 0))
         game_surface.blit(game_bg, (0, 0))
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                exit()
-            if event.type == pygame.USEREVENT:
-                time -= 1
-        
         def hit_goal():
             global goal_list
             for goal in goal_list:
@@ -124,14 +114,14 @@ while running:
         def regenerate_maze():
             global maze, walls_collide_list
             maze = generate()
-            walls_collide_list = [rect for cell in maze for rect in cell.get_rects()]
+            walls_collide_list = sum([cell.get_rects() for cell in maze],[])
             
         def collide(x, y):
             tmp_rect = player_rect.move(x, y)
             return tmp_rect.collidelist(walls_collide_list) != -1
 
         def game_over():
-            global time, score, record
+            global time, stage, record, in_game
             if time < 0:
                 pygame.time.wait(700)
                 player_rect.center = grid // 2, grid // 2
@@ -153,7 +143,7 @@ while running:
                 
         # Goal and check player collision
         if hit_goal():
-            score += 1
+            stage += 1
             time += 10
             reset_player_position()
 
@@ -184,14 +174,13 @@ while running:
         surface.blit(text_font.render('TIME', True, pygame.Color('white'), True), (1110, 30))
         surface.blit(font.render(f'{time}', True, time_color), (repos, 100))
         surface.blit(text_font.render('STAGE', True, pygame.Color('white'), True), (1100, 300))
-        surface.blit(font.render(f'{score}', True, pygame.Color('white')), (1150, 370))
+        surface.blit(font.render(f'{stage}', True, pygame.Color('white')), (1150, 370))
 
         pygame.display.flip()
         clock.tick(FPS)
-        
     else:
         menu.draw()
-
+            
     pygame.display.flip()
     clock.tick(FPS)
 

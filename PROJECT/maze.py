@@ -31,6 +31,9 @@ class Generate_Maze:
     def check_cell(self, x, y):
         find_index = lambda x, y: x + y * cols
         return self.grid_cells[find_index(x, y)] if self.is_valid_index(x, y) else False
+    
+    def find_index(self, x, y):
+        return x + y * cols
 
     def check_next(self, grid_cells):
         self.grid_cells = grid_cells
