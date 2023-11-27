@@ -1,10 +1,6 @@
 import pygame, random
 from random import choice
-
-# Constants
-RES = WIDTH, HEIGHT = 1080, 520
-GRID = 100   
-cols, rows = WIDTH // GRID, HEIGHT // GRID
+from config import *
 
 class Generate_Maze:
     def __init__(self, x, y):
@@ -15,12 +11,12 @@ class Generate_Maze:
 
     def get_rects(self):
         rects = []
-        x, y = self.x * GRID, self.y * GRID
+        x, y = self.x * grid, self.y * grid
         wall_params = [
-            ('top', (x, y), (GRID, self.thickness)),
-            ('bottom', (x, y + GRID), (GRID, self.thickness)),
-            ('left', (x, y), (self.thickness, GRID)),
-            ('right', (x + GRID, y), (self.thickness, GRID))
+            ('top', (x, y), (grid, self.thickness)),
+            ('bottom', (x, y + grid), (grid, self.thickness)),
+            ('left', (x, y), (self.thickness, grid)),
+            ('right', (x + grid, y), (self.thickness, grid))
         ]
 
         for wall, pos, size in wall_params:
@@ -50,12 +46,12 @@ class Generate_Maze:
         return choice(valid_neighbors) if valid_neighbors else False
     
     def draw(self, sc):
-        x, y = self.x * GRID, self.y * GRID
+        x, y = self.x * grid, self.y * grid
         wall_draw_params = [
-            ('top', (x, y), (x + GRID, y)),
-            ('bottom', (x + GRID, y + GRID), (x, y + GRID)),
-            ('left', (x, y + GRID), (x, y)),
-            ('right', (x + GRID, y), (x + GRID, y + GRID))
+            ('top', (x, y), (x + grid, y)),
+            ('bottom', (x + grid, y + grid), (x, y + grid)),
+            ('left', (x, y + grid), (x, y)),
+            ('right', (x + grid, y), (x + grid, y + grid))
         ]
 
         for wall, start, end in wall_draw_params:

@@ -5,6 +5,7 @@ from button import Button
 from maze import *
 from goal import Goal
 from images import Images
+from config import grid, rows, cols, RES
 
 def hit_goal():
     global goal_list
@@ -19,6 +20,7 @@ def regenerate_maze():
     global maze, walls_collide_list
     maze = generate()
     walls_collide_list = [rect for cell in maze for rect in cell.get_rects()]
+    
 
 def collide(x, y):
     tmp_rect = player_rect.move(x, y)
@@ -42,7 +44,7 @@ def game_over():
     global time, score, record
     if time < 0:
         pygame.time.wait(700)
-        player_rect.center = GRID // 2, GRID // 2
+        player_rect.center = grid // 2, grid // 2
         [goal.set_pos() for goal in goal_list]
         set_record(record, score)
         record = get_record()
@@ -53,8 +55,8 @@ def reset_player_position():
     valid_position = False
     while not valid_position:
         player_rect.center = (
-            randrange(1, cols - 1) * GRID + GRID // 2,
-            randrange(1, rows - 1) * GRID + GRID // 2
+            randrange(1, cols - 1) * grid + grid // 2,
+            randrange(1, rows - 1) * grid + grid // 2
         )
         valid_position = not player_collides_with_walls()
 
@@ -68,14 +70,13 @@ pygame.init()
 # Constants
 WIDTH, HEIGHT = 1280, 720
 FPS = 60
-GRID = 100
 game_surface = pygame.Surface(RES)
 surface = pygame.display.set_mode((WIDTH + 300, HEIGHT))
 clock = pygame.time.Clock()
 text_font = pygame.font.SysFont('Calibri', 50)
 font = pygame.font.SysFont('Calibri', 50)
 score = 0
-goal_list = [Goal(GRID) for i in range(1)]
+goal_list = [Goal(grid) for i in range(1)]
 
 # Assets
 icon = pygame.image.load("assets/icon.jpg")
@@ -99,7 +100,7 @@ walls_collide_list = sum([cell.get_rects() for cell in maze], [])
 
 # Time
 pygame.time.set_timer(pygame.USEREVENT, 1000)
-time = 60
+time = 50
 
 # Define object characteristics
 play_button = Button(540, 300, 200, 50, "PLAY", (105, 105, 105), (0, 200, 0))
@@ -112,9 +113,9 @@ speed = 5
 controls = {'a': (-speed, 0), 'd': (speed, 0), 'w': (0, -speed), 's': (0, speed)}
 key = {'a': pygame.K_a, 'd': pygame.K_d, 'w': pygame.K_w, 's': pygame.K_s}
 
-player_sprite = pygame.transform.scale(player_sprite, (GRID - 2 * maze[0].thickness, GRID - 2 * maze[0].thickness))
+player_sprite = pygame.transform.scale(player_sprite, (grid - 5 * maze[0].thickness, grid - 5 * maze[0].thickness))
 player_rect = player_sprite.get_rect()
-player_rect.center = GRID // 2, GRID // 2
+player_rect.center = grid // 2, grid // 2
 direction = (0, 0)
 
 # Display objects on screen
@@ -167,10 +168,10 @@ while running:
                 time -= 1
                 
         # Goal and check player collision
-        if in_game and hit_goal():
+        if hit_goal():
             score += 1
+            time += 10
             reset_player_position()
-            regenerate_maze()
 
         # Draw player
         game_surface.blit(player_sprite, player_rect)
