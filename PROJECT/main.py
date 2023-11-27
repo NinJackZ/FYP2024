@@ -48,6 +48,18 @@ def game_over():
         record = get_record()
         in_game = False
 
+def reset_player_position():
+    global player_rect
+    valid_position = False
+    while not valid_position:
+        player_rect.center = (
+            randrange(1, cols - 1) * GRID + GRID // 2,
+            randrange(1, rows - 1) * GRID + GRID // 2
+        )
+        valid_position = not player_collides_with_walls()
+
+def player_collides_with_walls():
+    return player_rect.collidelist(walls_collide_list) != -1
 
 
 # Initialize Pygame
@@ -62,8 +74,8 @@ surface = pygame.display.set_mode((WIDTH + 300, HEIGHT))
 clock = pygame.time.Clock()
 text_font = pygame.font.SysFont('Calibri', 50)
 font = pygame.font.SysFont('Calibri', 50)
-score= 1
-goal_list = [Goal(GRID, cols, rows) for i in range(1)]
+score = 0
+goal_list = [Goal(GRID) for i in range(1)]
 
 # Assets
 icon = pygame.image.load("assets/icon.jpg")
@@ -153,10 +165,12 @@ while running:
                 exit()
             if event.type == pygame.USEREVENT:
                 time -= 1
-        # Goal
-        if hit_goal():
+                
+        # Goal and check player collision
+        if in_game and hit_goal():
             score += 1
-        game_over()
+            reset_player_position()
+            regenerate_maze()
 
         # Draw player
         game_surface.blit(player_sprite, player_rect)
@@ -166,7 +180,7 @@ while running:
 
         # Draw maze
         for cell in maze:
-            cell.draw(game_surface)
+            cell.draw(game_surface)    
 
         # Movement
         key = {'a': pygame.K_a, 'd': pygame.K_d, 'w': pygame.K_w, 's': pygame.K_s}
