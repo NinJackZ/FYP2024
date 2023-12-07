@@ -1,4 +1,4 @@
-import pygame, sys
+import pygame, sys, os
 from random import *
 from menu import Menu
 from button import Button
@@ -6,6 +6,14 @@ from maze import *
 from goal import Goal
 from images import Images
 from config import grid, rows, cols, RES
+
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
 
 # Initialize Pygame
 pygame.init()
@@ -20,10 +28,11 @@ text_font = pygame.font.SysFont('Calibri', 50)
 font = pygame.font.SysFont('Calibri', 50)
 
 # Assets
-icon = pygame.image.load("assets/icon.jpg")
-bg = pygame.image.load("assets/bg.jpg")
-game_bg = pygame.image.load("assets/game_bg.jpg")
-player_sprite = pygame.image.load('assets/player.png').convert_alpha()
+icon = pygame.image.load(resource_path("assets/icon.jpg"))
+bg = pygame.image.load(resource_path("assets/bg.jpg"))
+game_bg = pygame.image.load(resource_path("assets/game_bg.jpg"))
+player_sprite = pygame.image.load(resource_path('assets/player.png')).convert_alpha()
+goal_image_path = resource_path("assets/destination.png")
 
 # Create screen
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -43,7 +52,7 @@ time = 60
 play_button = Button(540, 300, 200, 50, "PLAY", (105, 105, 105), (0, 200, 0))
 quit_button = Button(540, 500, 200, 50, "QUIT", (105, 105, 105), (0, 200, 0), sys.exit)
 solve_button = Button(540, 400, 200, 50, "SOLVE", (105, 105, 105), (0, 200, 0))
-title_image = Images(430, 100, "assets/title.png", action=None)
+title_image = Images(430, 100, resource_path("assets/title.png"), action=None)
 
 # Display objects on screen
 menu.add_button(play_button)
@@ -87,7 +96,7 @@ while running:
                     # Maze generation
                     maze = generate()
                     walls_collide_list = sum([cell.get_rects() for cell in maze], [])
-                    goal_list = [Goal(grid) for i in range(1)]
+                    goal_list = [Goal(grid, goal_image_path) for i in range(1)]
                     # Player controls
                     controls = {'a': (-player_speed, 0), 'd': (player_speed, 0), 'w': (0, -player_speed), 's': (0, player_speed)}
                     key = {'a': pygame.K_a, 'd': pygame.K_d, 'w': pygame.K_w, 's': pygame.K_s}
