@@ -46,7 +46,7 @@ menu = Menu(screen)
 
 # Time
 pygame.time.set_timer(pygame.USEREVENT, 1000)
-time = 60
+time = 5
 
 # Define object characteristics
 play_button = Button(540, 300, 200, 50, "PLAY", (105, 105, 105), (0, 200, 0))
@@ -69,9 +69,8 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        if event.type == pygame.USEREVENT:
+        if event.type == pygame.USEREVENT and in_game == True:
             time -= 1
-
         key = pygame.key.get_pressed()
 
     if not in_game:
@@ -89,10 +88,11 @@ while running:
                 pos = pygame.mouse.get_pos()
                 menu.check_button_clicks(pos)
                 if play_button.rect.collidepoint(pos):
+                    in_game = True
                     # Game constants
                     player_speed = 5
                     stage = 1
-                    in_game = True
+                    
                     # Maze generation
                     maze = generate()
                     walls_collide_list = sum([cell.get_rects() for cell in maze], [])
@@ -131,11 +131,9 @@ while running:
 
         def game_over():
             global time, stage, record, in_game
-            if time < 0:
-                pygame.time.wait(700)
-                player_rect.center = grid // 2, grid // 2
-                [goal.set_pos() for goal in goal_list]
-                in_game = False
+            pygame.time.wait(700)
+            in_game = False
+            time = 60
 
         def reset_player_position():
             global player_rect
@@ -155,6 +153,8 @@ while running:
             stage += 1
             time += 10
             reset_player_position()
+        if time == 0:
+            game_over()
 
         # Draw player
         game_surface.blit(player_sprite, player_rect)
