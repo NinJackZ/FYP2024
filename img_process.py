@@ -1,27 +1,25 @@
+import numpy as np
+import cv2 as cv
  
-# import the opencv library 
-import cv2 
-  
-  
-# define a video capture object 
-vid = cv2.VideoCapture(0) 
-  
-while(True): 
-      
-    # Capture the video frame 
-    # by frame 
-    ret, frame = vid.read() 
-  
-    # Display the resulting frame 
-    cv2.imshow('frame', frame) 
-      
-    # the 'q' button is set as the 
-    # quitting button you may use any 
-    # desired button of your choice 
-    if cv2.waitKey(1) & 0xFF == ord('q'): 
+cap = cv.VideoCapture(0)
+if not cap.isOpened():
+    print("Cannot open camera")
+    exit()
+while True:
+    
+    ret, frame = cap.read()
+ 
+    
+    if not ret:
+        print("Can't receive frame (stream end?). Exiting ...")
         break
-  
-# After the loop release the cap object 
-vid.release() 
-# Destroy all the windows 
-cv2.destroyAllWindows() 
+    
+    gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+    
+    cv.imshow('frame', gray)
+    if cv.waitKey(1) == ord('q'):
+        break
+ 
+
+cap.release()
+cv.destroyAllWindows()

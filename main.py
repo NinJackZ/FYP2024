@@ -1,4 +1,4 @@
-import pygame, sys, os
+import pygame, sys, os, cv2
 from random import *
 from menu import Menu
 from button import Button
@@ -74,6 +74,19 @@ while running:
         key = pygame.key.get_pressed()
 
     if not in_game:
+        # def IP_part():
+        #     cap = cv2.VideoCapture(0)
+        #     if not cap.isOpened():
+        #         print ("Cannot open camera")
+        #         exit()
+        #     while True:
+        #         ret, frame = cap.read()
+        #         if not ret:
+        #             print("cannot receive frame (stream end?)")
+        #             break
+        #         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        #         cv2.imshow('frame', gray)
+            
         # Background animation
         screen.fill((0,0,0))
         screen.blit(bg,(bg_i,0))
@@ -104,7 +117,8 @@ while running:
                     player_rect = player_sprite.get_rect()
                     player_rect.center = grid // 2, grid // 2
                     direction = (0, 0)
-
+                if solve_button.rect.collidepoint(pos):
+                    IP_part()
     if in_game: 
         FPS = 120
         screen.fill('black')
