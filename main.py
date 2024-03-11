@@ -60,33 +60,37 @@ menu.add_button(solve_button)
 menu.add_button(quit_button)
 menu.add_image(title_image)
 
+# Game constants
+player_speed = 5
+stage = 1
+
+# Maze generation
+maze = generate()
+walls_collide_list = sum([cell.get_rects() for cell in maze], [])
+goal_list = [Goal(grid, goal_image_path) for i in range(1)]
+
+# Player controls
+controls = {'a': (-player_speed, 0), 'd': (player_speed, 0), 'w': (0, -player_speed), 's': (0, player_speed)}
+key = {'a': pygame.K_a, 'd': pygame.K_d, 'w': pygame.K_w, 's': pygame.K_s}
+player_sprite = pygame.transform.scale(player_sprite, (grid - 5 * maze[0].thickness, grid - 5 * maze[0].thickness))
+player_rect = player_sprite.get_rect()
+player_rect.center = grid // 2, grid // 2
+direction = (0, 0)
+
 # Main game loop
-running = True
+main_menu = True
 in_game = False 
 bg_i = 0
 
-while running:
+while main_menu:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            running = False
+            main_menu = False
         if event.type == pygame.USEREVENT and in_game == True:
             time -= 1
         key = pygame.key.get_pressed()
 
     if not in_game:
-        # def IP_part():
-        #     cap = cv2.VideoCapture(0)
-        #     if not cap.isOpened():
-        #         print ("Cannot open camera")
-        #         exit()
-        #     while True:
-        #         ret, frame = cap.read()
-        #         if not ret:
-        #             print("cannot receive frame (stream end?)")
-        #             break
-        #         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        #         cv2.imshow('frame', gray)
-            
         # Background animation
         screen.fill((0,0,0))
         screen.blit(bg,(bg_i,0))
@@ -102,28 +106,15 @@ while running:
                 menu.check_button_clicks(pos)
                 if play_button.rect.collidepoint(pos):
                     in_game = True
-                    # Game constants
-                    player_speed = 5
-                    stage = 1
                     
-                    # Maze generation
-                    maze = generate()
-                    walls_collide_list = sum([cell.get_rects() for cell in maze], [])
-                    goal_list = [Goal(grid, goal_image_path) for i in range(1)]
-                    # Player controls
-                    controls = {'a': (-player_speed, 0), 'd': (player_speed, 0), 'w': (0, -player_speed), 's': (0, player_speed)}
-                    key = {'a': pygame.K_a, 'd': pygame.K_d, 'w': pygame.K_w, 's': pygame.K_s}
-                    player_sprite = pygame.transform.scale(player_sprite, (grid - 5 * maze[0].thickness, grid - 5 * maze[0].thickness))
-                    player_rect = player_sprite.get_rect()
-                    player_rect.center = grid // 2, grid // 2
-                    direction = (0, 0)
-                if solve_button.rect.collidepoint(pos):
-                    IP_part()
+                # if solve_button.rect.collidepoint(pos):
+                #     IP_part()
     if in_game: 
         FPS = 120
         screen.fill('black')
         surface.blit(game_surface, (0, 0))
         game_surface.blit(game_bg, (0, 0))
+        
 
         def hit_goal():
             global goal_list
