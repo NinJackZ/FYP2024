@@ -1,6 +1,7 @@
 import pygame, sys, os, cv2
 from random import *
 from menu import Menu
+from endscreen import Endscreen
 from button import Button
 from maze import *
 from goal import Goal
@@ -46,7 +47,7 @@ menu = Menu(screen)
 
 # Time
 pygame.time.set_timer(pygame.USEREVENT, 1000)
-time = 5
+time = 30
 
 # Define object characteristics
 play_button = Button(540, 300, 200, 50, "PLAY", (105, 105, 105), (0, 200, 0))
@@ -78,19 +79,21 @@ player_rect.center = grid // 2, grid // 2
 direction = (0, 0)
 
 # Main game loop
-main_menu = True
+running = True
+main_menu = False
 in_game = False 
+end_game = False
 bg_i = 0
 
-while main_menu:
+while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            main_menu = False
+            running = False
         if event.type == pygame.USEREVENT and in_game == True:
             time -= 1
         key = pygame.key.get_pressed()
 
-    if not in_game:
+    if main_menu:
         # Background animation
         screen.fill((0,0,0))
         screen.blit(bg,(bg_i,0))
@@ -108,13 +111,35 @@ while main_menu:
                     in_game = True
                     
                 # if solve_button.rect.collidepoint(pos):
-                #     IP_part()
+                #     IP_part()    
+        menu.draw()
+
+    if end_game:
+        main_menu = False
+        # Menu elements
+        game_over_image = Images(450, 100, resource_path("assets/gameover.png"), action=None)
+        return_menu_button = Button(540, 550, 200, 50, "MAIN MENU", (105, 105, 105), (0, 200, 0))
+        screen.fill('black')
+        surface.blit(game_surface, (0, 0))
+        game_surface.blit(game_bg, (0, 0))
+        endscreen = Endscreen(screen)
+        endscreen.add_image(game_over_image)
+        endscreen.add_button(return_menu_button)
+        endscreen.draw()
+        textbox = font.render('Score: ' + str(stage), True, (255, 255, 255))
+        textRect = textbox.get_rect()
+        textRect.center = (WIDTH // 2, HEIGHT // 2)
+        game_surface.blit(textbox, textRect)
+        if return_menu_button.rect.collidepoint(pos):
+            end_game = False
+            stage = 1
+            
+
     if in_game: 
         FPS = 120
         screen.fill('black')
         surface.blit(game_surface, (0, 0))
         game_surface.blit(game_bg, (0, 0))
-        
 
         def hit_goal():
             global goal_list
@@ -138,7 +163,7 @@ while main_menu:
             global time, stage, record, in_game
             pygame.time.wait(700)
             in_game = False
-            time = 60
+            time = 30
 
         def reset_player_position():
             global player_rect
@@ -160,6 +185,8 @@ while main_menu:
             reset_player_position()
         if time == 0:
             game_over()
+            end_game = True
+            
 
         # Draw player
         game_surface.blit(player_sprite, player_rect)
@@ -192,9 +219,8 @@ while main_menu:
 
         pygame.display.flip()
         clock.tick(FPS)
-    else:
-        menu.draw()
-            
+
+    main_menu = True
     pygame.display.flip()
     clock.tick(FPS)
 
