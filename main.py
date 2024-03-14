@@ -65,17 +65,9 @@ menu.add_image(title_image)
 player_speed = 5
 stage = 1
 
-# Maze generation
-maze = generate()
-walls_collide_list = sum([cell.get_rects() for cell in maze], [])
-goal_list = [Goal(grid, goal_image_path) for i in range(1)]
-
 # Player controls
 controls = {'a': (-player_speed, 0), 'd': (player_speed, 0), 'w': (0, -player_speed), 's': (0, player_speed)}
 key = {'a': pygame.K_a, 'd': pygame.K_d, 'w': pygame.K_w, 's': pygame.K_s}
-player_sprite = pygame.transform.scale(player_sprite, (grid - 5 * maze[0].thickness, grid - 5 * maze[0].thickness))
-player_rect = player_sprite.get_rect()
-player_rect.center = grid // 2, grid // 2
 direction = (0, 0)
 
 # Main game loop
@@ -84,6 +76,14 @@ main_menu = False
 in_game = False 
 end_game = False
 bg_i = 0
+
+# Maze generation
+maze = generate()
+walls_collide_list = sum([cell.get_rects() for cell in maze], [])
+goal_list = [Goal(grid, goal_image_path) for i in range(1)]
+player_sprite = pygame.transform.scale(player_sprite, (grid - 5 * maze[0].thickness, grid - 5 * maze[0].thickness))
+player_rect = player_sprite.get_rect()
+player_rect.center = grid // 2, grid // 2
 
 while running:
     for event in pygame.event.get():
@@ -110,8 +110,13 @@ while running:
                 if play_button.rect.collidepoint(pos):
                     in_game = True
                     
-                # if solve_button.rect.collidepoint(pos):
-                #     IP_part()    
+                if solve_button.rect.collidepoint(pos):
+                    file_path = 'img_process.py'
+                    try:
+                        os.system(f'python {file_path}')
+                    except FileNotFoundError:
+                        print(f"Error: The file '{file_path}' does not exist.")
+
         menu.draw()
 
     if end_game:
