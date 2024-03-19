@@ -60,6 +60,15 @@ class Generate_Maze:
         for wall, start, end in wall_draw_params:
             if self.walls[wall]:
                 pygame.draw.line(sc, pygame.Color('white'), start, end, self.thickness)
+    
+    def neighbors(self, maze):
+        neighbors = []
+        for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+            new_x, new_y = self.x + dx, self.y + dy
+            if 0 <= new_x < len(maze) and 0 <= new_y < len(maze[0]):
+                neighbors.append(maze[new_x][new_y])
+        return neighbors
+    
 
 def generate():
     grid_cells = [Generate_Maze(col, row) for row in range(rows) for col in range(cols)]

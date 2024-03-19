@@ -1,5 +1,5 @@
-import pygame, sys, os, cv2
-from random import *
+import pygame, sys, os
+from random import randrange
 from menu import Menu
 from endscreen import Endscreen
 from button import Button
