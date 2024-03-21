@@ -2,6 +2,7 @@ import pygame, sys, os
 from random import randrange
 from menu import Menu
 from endscreen import Endscreen
+from ingame_menu import Gamescreen
 from button import Button
 from maze import *
 from goal import Goal
@@ -145,6 +146,16 @@ while running:
         screen.fill('black')
         surface.blit(game_surface, (0, 0))
         game_surface.blit(game_bg, (0, 0))
+        gamescreen = Gamescreen(screen)
+        return_button = Button(100, 550, 200, 50, "Main Menu", (105, 105, 105), (0, 200, 0))
+        gamescreen.add_button(return_button)
+        gamescreen.draw()
+        if return_button.rect.collidepoint(pos):
+            in_game = False
+            regenerate_maze()
+            reset_player_position()
+            time = 30
+            stage = 1
 
         def hit_goal():
             global goal_list
