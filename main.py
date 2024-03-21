@@ -192,7 +192,6 @@ while running:
             game_over()
             end_game = True
             
-
         # Draw player
         game_surface.blit(player_sprite, player_rect)
 
