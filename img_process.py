@@ -1,91 +1,171 @@
 import os
-import sys
-import tkinter as tk
-import cv2 as cv
-from tkinter import filedialog, messagebox
-
-# Directory for assets
-def resource_path(relative_path):
-    try:
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
-
-    return os.path.join(base_path, relative_path)
+import cv2
+from tkinter import *
+from tkinter import filedialog
+import tkinter.messagebox
+from queue import PriorityQueue
 
 class Waypoint:
     def __init__(self, x=0, y=0):
         self.x = x
         self.y = y
 
-    def add(self, other):
-        return Waypoint(self.x + other.x, self.y + other.y)
+    def __add__(self, other):
+        if isinstance(other, Waypoint):
+            return Waypoint(self.x + other.x, self.y + other.y)
 
-    def check_meet(self, target):
-        return self.x == target.x and self.y == target.y
+    def __eq__(self, other):
+        return self.x == other.x and self.y == other.y
+    
+    def __hash__(self):
+        return hash((self.x, self.y))
+    
+    def __lt__(self, other):
+        if isinstance(other, Waypoint):
+            return (self.x, self.y) < (other.x, other.y)  
 
-def sort(queue, en):
-    index = [(cell.x - en.x) ** 2 + (cell.y - en.y) ** 2 for cell in queue]
-    sorted_queue = [x for _, x in sorted(zip(index, queue), reverse=True)]
-    return sorted_queue
+def heuristic(point, end):
+    return ((point.x - end.x) ** 2 + (point.y - end.y) ** 2) ** 0.5
 
-def mouse_event(event, x, y, flags, params):
-    global col, start, end, point_count
-    s = 2
-    if event == cv.EVENT_LBUTTONUP:
+def is_valid_move(point):
+    # Check if the move is within bounds and not hitting a wall
+    return 0 <= point.x < width and 0 <= point.y < height and not all(column[point.y][point.x][i] == 255 for i in range(3))
+
+def pathfind(st, end):
+    global column, height, width, parameters
+    count = 0
+    goal = False
+    open_set = PriorityQueue()
+    open_set.put((0, st))
+    origin = [[Waypoint() for j in range(width)] for i in range(height)]
+    cost_so_far = {st: 0}
+
+    while not open_set.empty():
+        _, main_point = open_set.get()
+        count += 1
+
+        if count % 100 == 0:
+            result = column.copy()
+            result = cv2.resize(result, (800, 800))
+            cv2.imshow('Solve Maze', result)
+            cv2.waitKey(1)
+
+        if main_point == end:
+            goal = True
+            break
+
+        for direction in parameters:
+            next_cell = main_point + direction
+            x, y = next_cell.x, next_cell.y
+            if is_valid_move(next_cell):
+                new_cost = cost_so_far[main_point] + 1
+                if next_cell not in cost_so_far or new_cost < cost_so_far[next_cell]:
+                    cost_so_far[next_cell] = new_cost
+                    priority = new_cost + heuristic(next_cell, end)
+                    open_set.put((priority, next_cell))
+                    origin[y][x] = main_point
+
+    route = []
+
+    if goal:
+        point = end
+        while point != st:
+            route.append(point)
+            point = origin[point.y][point.x]
+        route.append(point)
+    
+        for i, p in enumerate(route):
+            cv2.rectangle(column, (p.x - 1, p.y - 1), (p.x + 1, p.y + 1), (0, 255, 0, 100), -1)
+
+            if (i + 1) % 15 == 0:
+                result = column.copy()
+                result = cv2.resize(result, (800, 800))
+                cv2.imshow('Solve Maze', result)
+        result = column.copy()
+        result = cv2.resize(result, (800, 800))
+        cv2.imshow('Solve Maze', result)
+        cv2.waitKey(0)
+
+def handle_mouse_click(action, x, y, flags = None, params = None):
+    global column, start, end, point_count
+    placement = 2
+    if action == cv2.EVENT_LBUTTONUP:
         if point_count == 0:
-            col = cv.rectangle(col, (x - s, y - s), (x + s, y + s), color=(0, 0, 255), thickness=-1)
+            column = cv2.rectangle(column, (x - placement, y - placement), (x + placement, y + placement), color=(255, 0, 255), thickness=-1)
             start = Waypoint(x, y)
-            print(f'start: {start.x}, {start.y}')
             point_count += 1
         elif point_count == 1:
-            col = cv.rectangle(col, (x - s, y - s), (x + s, y + s), color=(255, 255, 0), thickness=-1)
+            column = cv2.rectangle(column, (x - placement, y - placement), (x + placement, y + placement), color=(255, 0, 255), thickness=-1)
             end = Waypoint(x, y)
-            print(f'end: {end.x}, {end.y}')
             point_count += 1
 
-def upload_maze_image():
-    root = tk.Tk()
-    root.withdraw()
+screen = Tk()
+screen.withdraw()
+prompt = tkinter.messagebox.askyesnocancel("Maze Solver", " Yes: Upload Maze Image \n No: Take Picture of Maze Image \n Cancel: Return To Main Menu")
 
-    prompt = messagebox.askokcancel("Upload A Maze Image", "Upload an image in .jpg or .png format, ensure the maze has closed walls")
+if prompt:
 
-    if prompt:
-        file_path = filedialog.askopenfilename()
-        _, file_ext = os.path.splitext(file_path)
+    path = filedialog.askopenfilename()
+    _, file_ext = os.path.splitext(path)
 
-        supported_formats = ['.png', '.jpg', '.jpeg']
+    try:
+        if file_ext.lower() not in ['.png', '.jpeg', '.jpg']:
+            raise ValueError
+        point_count = 0
+        start  = Waypoint()
+        end = Waypoint()
+        parameters = [Waypoint(0, -1), Waypoint(0, 1), Waypoint(1, 0), Waypoint(-1, 0)]
+        size = 512
+        img = cv2.imread(path, 0)
+        img = cv2.resize(img, (size, size))
+        ret, threshold = cv2.threshold(img, 150, 255, cv2.THRESH_BINARY_INV)
+        threshold = cv2.resize(threshold, (size, size))
+        column = cv2.cvtColor(threshold, cv2.COLOR_GRAY2BGR)
+        height, width, d = column.shape
 
-        try:
-            # Open an image file
-            if file_ext.lower() not in supported_formats:
-                raise ValueError(f"Error: invalid file {file_ext}, valid files are .jpg and .png")
-            elif not file_ext:
-                pass
-            global point_count, col, start, end, directions, ret, h, w, d
-            point_count = 0
-            start = Waypoint()
-            end = Waypoint()
-            directions = [Waypoint(0, -1), Waypoint(0, 1), Waypoint(1, 0), Waypoint(-1, 0)]
-            size = 512
-            img = cv.imread(file_path, 0)
-            img = cv.resize(img, (size, size))
-            ret, thresh = cv.threshold(img, 150, 255, cv.THRESH_BINARY_INV)
-            thresh = cv.resize(thresh, (size, size))
-            col = cv.cvtColor(thresh, cv.COLOR_GRAY2BGR)
-            h, w, d = col.shape
-            cv.namedWindow('image')
-            cv.setMouseCallback('image', mouse_event)
-            while True:
-                cv.imshow('image', col)
-                k = cv.waitKey(100)
-                if point_count == 2:
-                    break
-            cv.destroyAllWindows()
-        except FileNotFoundError:
-            messagebox.showerror("Error", "File not found")
-        except ValueError as e:
-            messagebox.showerror("Error", str(e))
+        cv2.namedWindow('Solve Maze')
+        cv2.setMouseCallback('Solve Maze', handle_mouse_click)
+        while True:
+            cv2.imshow('Solve Maze', column)
+            k = cv2.waitKey(100)
+            if point_count == 2:
+                break
+        pass
 
-if __name__ == "__main__":
-    upload_maze_image()
+        pathfind(start, end)
+        cv2.destroyAllWindows()
+    except ValueError:
+        tkinter.messagebox.showerror("Error", "Incorrect File Format, must be .jpg or .png")
+
+if prompt is False:
+    cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+
+    cv2.namedWindow("Capture Image")
+    img_counter = 0
+
+    while True:
+        ret, img = cam.read()
+        cv2.putText(img,"SPACE to Capture   ESC to Return", (50,50),cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 1, cv2.LINE_AA )
+        if not ret:
+            print("failed to grab frame")
+            break
+        cv2.imshow("test", img)
+
+        k = cv2.waitKey(1)
+        if k%256 == 27:
+            break
+        elif k%256 == 32:
+            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            blur = cv2.GaussianBlur(gray,(5,5),0)
+            ret, thresh_img = cv2.threshold(blur,91,255,cv2.THRESH_BINARY)
+            contours =  cv2.findContours(thresh_img,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)[-2]
+            for c in contours:
+                cv2.drawContours(img, [c], -1, (0,255,0), 3)
+            img_name = "opencv_frame_{}.png".format(img_counter)
+            cv2.imwrite(img_name, img)
+            print("{} written!".format(img_name))
+            img_counter += 1
+
+    cam.release()
+
+    cv2.destroyAllWindows()
