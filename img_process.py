@@ -31,6 +31,7 @@ def is_valid_move(point):
     # Check if the move is within bounds and not hitting a wall
     return 0 <= point.x < width and 0 <= point.y < height and not all(column[point.y][point.x][i] == 255 for i in range(3))
 
+# A* pathfinding algorithm used to highlight path between start and end points
 def pathfind(st, end):
     global column, height, width, parameters
     count = 0
@@ -87,6 +88,7 @@ def pathfind(st, end):
         cv2.waitKey(0)
 
 def handle_mouse_click(action, x, y, flags = None, params = None):
+    # Place points on the maze to solve
     global column, start, end, point_count
     placement = 2
     if action == cv2.EVENT_LBUTTONUP:
@@ -102,7 +104,7 @@ def handle_mouse_click(action, x, y, flags = None, params = None):
 screen = Tk()
 screen.withdraw()
 prompt = tkinter.messagebox.askyesnocancel("Maze Solver", " Yes: Upload Maze Image \n No: Take Picture of Maze Image \n Cancel: Return To Main Menu")
-
+# Use maze image from file explorer
 if prompt:
 
     path = filedialog.askopenfilename()
@@ -138,6 +140,7 @@ if prompt:
         tkinter.messagebox.showerror("Error", "Incorrect File Format, must be .jpg or .png")
 
 if prompt is False:
+    # Save image to used to solve
     cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
     cv2.namedWindow("Capture Image")

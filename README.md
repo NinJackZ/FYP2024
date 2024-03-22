@@ -5,6 +5,7 @@ For Windows users
 2) Open Command prompt and install the following
 	pip install pygame
 	pip install opencv-python
+	pip install tk
 
 ----------------------------------------------------------------------------------------------------------------------------------
 
@@ -18,4 +19,5 @@ For Ubuntu users
 2) Install the following
 	sudo apt-get install python3-pygame
 	sudo apt-get install python3-pip
-	pip3 install opencv-python
+	sudo apt-get install python3-opencv
+	sudo apt install python3-tk

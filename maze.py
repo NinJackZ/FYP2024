@@ -2,6 +2,7 @@ import pygame, random
 from random import choice
 from config import *
 
+# Depth-first search algorithm used to generate random mazes
 class Generate_Maze:
     def __init__(self, x, y):
         self.x, self.y = x, y
