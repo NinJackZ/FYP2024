@@ -21,3 +21,4 @@ For Ubuntu users
 	sudo apt-get install python3-pip
 	sudo apt-get install python3-opencv
 	sudo apt install python3-tk
+	pip3 install opencv-python

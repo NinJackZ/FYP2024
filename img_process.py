@@ -25,6 +25,7 @@ class Waypoint:
             return (self.x, self.y) < (other.x, other.y)  
 
 def heuristic(point, end):
+    # Uses Pythagoras theorem to improve efficiency
     return ((point.x - end.x) ** 2 + (point.y - end.y) ** 2) ** 0.5
 
 def is_valid_move(point):
@@ -152,7 +153,7 @@ if prompt is False:
         if not ret:
             print("failed to grab frame")
             break
-        cv2.imshow("test", img)
+        cv2.imshow("Capture Image", img)
 
         k = cv2.waitKey(1)
         if k%256 == 27:

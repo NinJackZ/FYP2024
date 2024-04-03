@@ -1,4 +1,4 @@
-import pygame, random
+import pygame
 from random import choice
 from config import *
 

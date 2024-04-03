@@ -1,4 +1,6 @@
-import pygame, sys, os
+import pygame
+import sys
+import os
 from random import randrange
 from menu import Menu
 from endscreen import Endscreen

@@ -1,5 +1,4 @@
 import pygame
-from button import Button
 
 class Endscreen:
     def __init__(self, screen):
