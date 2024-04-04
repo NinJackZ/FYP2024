@@ -22,3 +22,6 @@ For Ubuntu users
 	sudo apt-get install python3-opencv
 	sudo apt install python3-tk
 	pip3 install opencv-python
+
+To launch the program run the 'main.py' file ensuring the required packages are installed alongside python3 and git bash. More info on this in the appendix
+section of the project
